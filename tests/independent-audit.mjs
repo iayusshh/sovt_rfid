@@ -50,7 +50,7 @@ expect(!sstate.events?.length && !sstate.audits?.length && !sstate.readers?.leng
 const stamp = `${Date.now()}`;
 const original = astate.students.find(s=>s.id===sstate.user.studentId);
 assert(original);
-const created = await api('/students',{cookie:admin,method:'POST',body:{name:'=AUDIT()',roll:`AUD-${stamp}`,email:`audit-${stamp}@demo.sovt.test`,cardUid:'04CCDDAA001122',password:secret}});
+const created = await api('/students',{cookie:admin,method:'POST',body:{name:'=AUDIT()',roll:`AUD-${stamp}`,email:`audit-${stamp}@demo.sovt.test`,cardUid:`04${BigInt(stamp).toString(16).padStart(12,'0').slice(-12)}`,password:secret}});
 assert.equal(created.status,200,JSON.stringify(created.data));
 const fresh = (await api('/state',{cookie:admin})).data;
 const extra = fresh.students.find(s=>s.roll===`AUD-${stamp}`); assert(extra);
