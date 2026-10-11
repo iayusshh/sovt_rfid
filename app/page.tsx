@@ -2047,9 +2047,8 @@ export default function Home() {
                       for verified HTTPS and enable clock synchronization.
                     </li>
                     <li>
-                      On private Sites hosting, also configure the separate
-                      Sites service token. It is different from the reader
-                      token.
+                      For this Vercel deployment, leave SITES_ACCESS_TOKEN
+                      empty. The dedicated reader token authenticates scans.
                     </li>
                     <li>
                       Flash the ESP32 and check that the reader becomes Online.

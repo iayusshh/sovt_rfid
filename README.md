@@ -14,9 +14,9 @@ A session snapshots the enrolled active students when opened. A scan within ten 
 
 ## Hosted demonstration
 
-Site: https://sovt-attendance.iayusshh.chatgpt.site
+Hosting target: Vercel project `sovt-rfid`, with both the Next.js website and attendance API running on Vercel. Persistence is a separate hosted Turso database. The migration does not proxy requests to the old Sites app. The original Sites source remains on `archive/sites-deployment`; its database and test records are independent.
 
-The Site stays **owner-private**. Sign in with the owning ChatGPT account first, then use an application demo account. This outer access boundary is preserved for the assignment demo; granting other faculty/students access is a separate hosting-access change. A physical reader uses both the Sites service bearer and its own reader bearer. Device credentials do not grant a user account.
+Source: [private GitHub repository](https://github.com/iayusshh/sovt_rfid). The owner adds teammates under **Settings → Collaborators**. See [CONTRIBUTING.md](CONTRIBUTING.md) for the branch and review workflow. GitHub Actions runs checks on pull requests. Teammates need their own development database; preview deployments never receive production database credentials.
 
 Demo accounts:
 
@@ -31,23 +31,24 @@ The password is supplied in the ignored local `.demo-credentials.md` file; it is
 
 ## Local setup
 
-Node.js 22.13+ and npm are required. Install dependencies with `npm ci`. Copy `.env.example` to `.dev.vars` and replace its values. Generate tokens with a cryptographic random generator; `DEMO_READER_TOKEN` must be 64 lowercase hexadecimal characters. Use a password of 10–128 characters.
+Node.js 22.18+ (24 recommended) and npm are required. Install with `npm ci`. Copy `.env.example` to `.env.local`, replace tokens/password, and keep the `file:./.local/attendance.db` URL for local development. Create `.local` before migration. `DEMO_READER_TOKEN` must be 64 lowercase hexadecimal characters; the demo password must contain 10–128 characters.
 
 ```sh
-npm run db:generate  # only after a deliberate schema change
-npm run build
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_bumpy_tana_nile.sql
+mkdir -p .local
+npm run db:migrate
 npm run dev
+# In another terminal:
+npm run demo:seed
 ```
 
-Apply the migration only once on a new local database; it is already applied in this checkout. In another terminal, run `node scripts/bootstrap-demo.mjs`. It creates the 10 students, 2 faculty, two courses, and reader without creating historical attendance. Repeated bootstrap preserves existing records. Open the printed local preview URL, then sign in with the configured demo password. Browser-local storage is not the attendance database.
+Open http://localhost:3000. The migration runner tracks checksums and is safe to repeat. Seed creates ten synthetic students, two faculty, two courses and one reader; it preserves existing demo records. `npm run build` and `npm start` run the production Node build. Database records persist across application restarts. Production rejects local database files and requires `TURSO_DATABASE_URL` plus `TURSO_AUTH_TOKEN` in Vercel's production environment.
 
-Use `npm start` to preview the built Worker. It shares the persistent local D1 state with development. Secrets stay in ignored `.dev.vars`; hosted secrets are configured through Sites runtime settings. Do not commit completed firmware `secrets.h` or publish firmware binaries containing secrets.
+The setup endpoint requires the secret `SETUP_TOKEN`. Remove that environment variable after provisioning to disable further bootstrap access. Keep database and device credentials server-side or in ignored local files. Never commit `.env.local`, `.dev.vars`, completed firmware `secrets.h`, or firmware binaries with secrets.
 
 ## Demonstration sequence
 
 1. Sign in as admin. Review Students, Courses and enrollment. Replace a student's synthetic UID with a discovered physical card UID when hardware is available.
-2. Provision a reader or use the demo reader with its configured key. Follow [the hardware guide](docs/hardware.md), including discovery mode and the private Sites service credential.
+2. Provision a reader or use the demo reader with its configured key. Follow [the hardware guide](docs/hardware.md), including discovery mode and TLS configuration.
 3. Sign in as Faculty 1 and open a Database Systems session on that reader.
 4. Tap an enrolled card. The roster updates every three seconds. For a hardware-free demonstration, use the clearly labeled **Synthetic scan simulator**; its marks retain `simulated` as their source.
 5. Retap the same card to observe duplicate preservation; try an unregistered card to observe rejection.
@@ -58,15 +59,17 @@ Use `npm start` to preview the built Worker. It shares the persistent local D1 s
 
 See [independent audit](docs/audit.md) for the fresh executed results. Local API lifecycle/security, restart persistence, exact late boundary and actual late HTTP behavior were verified independently. TypeScript, production build, browser session workflow, and firmware compilation were checked. Physical board/card, wiring, LED, Wi-Fi/TLS operation on the board, and compatibility with your existing college ID require hardware acceptance using the checklist in [docs/hardware.md](docs/hardware.md). A compiled firmware or an HTTP submission is not proof of an RF read.
 
-The private Site service token must be provisioned securely to the reader. This repo intentionally has no actual credentials in tracked source. Without network access the reader reports failure; remove the card and retap online, checking the roster if a response was lost. Faculty can repair attendance with an audited reason.
+For Vercel, leave the firmware’s optional `SITES_ACCESS_TOKEN` empty. The dedicated reader bearer is the only app credential required. This repo contains no actual credentials in tracked source. Without network access the reader reports failure; remove the card and retap online, checking the roster if a response was lost. Faculty can repair attendance with an audited reason.
 
 This assignment identifies students by a card UID. It does not prevent card lending or UID cloning. Use authenticated cards and stronger identity checks if extending it beyond an assignment demonstration.
 
 Run the destructive synthetic-data audit only against a disposable/local demonstration:
 
 ```sh
-AUDIT_URL=http://127.0.0.1:5173 DEMO_PASSWORD='<configured password>' node tests/independent-audit.mjs
-npx tsc --noEmit
+AUDIT_URL=http://localhost:3000 DEMO_PASSWORD='<configured password>' node tests/independent-audit.mjs
+npm run typecheck
+npm run lint
+npm run test:database
 npm run build
 ```
 
@@ -80,13 +83,13 @@ Student profile and management portal, parent contact details, and a single acti
 
 - `app/page.tsx`, `app/globals.css`: role-aware responsive workspace.
 - `app/api/[...path]/route.ts`, `lib/attendance-api.ts`: authenticated API and attendance transactions.
-- `db/schema.ts`, `drizzle/`: versioned D1 schema and migration.
+- `db/schema.ts`, `drizzle/`: versioned SQLite-compatible schema and migration.
 - `firmware/`: PlatformIO ESP32 firmware with secure configuration example.
 - `docs/research-attendance.md`, `.claude/context/rfid-attendance.md`: decisions and API contract.
 - `tests/independent-audit.mjs`, `docs/audit.md`: independent verification.
 
-Future schema changes append migrations. Do not rewrite an applied migration. Deployment uses the installed Sites workflow to push exact source, package the matching build, and publish that saved version.
+Future schema changes append migrations. Do not rewrite an applied migration. Deployment uses Vercel with GitHub source. Main is production; pull requests are reviewed before merging. Provision an isolated database before enabling writable previews.
 
 ### Delivery status — 11 October 2026
 
-Private publication succeeded; 16 hosted HTTP acceptance checks passed, including all three role logins and the reader's two authentication layers. Local browser workflows and mobile layout were observed. The hosted browser's outer OpenAI account-selection step returned a provider400 content-type error during verification, so signing in through that hosted browser boundary remains an open gate. Physical card scanning also remains an open hardware gate. You can exercise the verified application locally while checking hosted owner sign-in in your normal browser.
+The original Sites snapshot passed sixteen hosted HTTP checks. Vercel migration and acceptance results are recorded in docs/audit.md once run. Physical ESP32/PN532 card scanning remains unverified until tested with the actual board and cards.

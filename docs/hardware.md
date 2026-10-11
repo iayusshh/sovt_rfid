@@ -28,7 +28,7 @@ Set the PN532's switches/jumpers to **SPI according to its own board instruction
 1. Install [PlatformIO](https://docs.platformio.org/en/latest/core/installation/index.html) (or its VS Code extension). From `firmware`, copy `include/secrets.example.h` to `include/secrets.h`. That local file and build output are ignored.
 2. Fill the 2.4 GHz Wi-Fi credentials, **HTTPS origin with no trailing slash**, and the reader credential created in the admin Readers page. Use a dedicated reader credential; rotate it if shared accidentally.
 3. Paste the deployed hostname's trusted **root CA PEM** into `ROOT_CA`. Obtain it from the issuing CA's official certificate repository after inspecting the site's chain in your browser. Do not paste only the leaf certificate, disable verification, or trust a certificate retrieved over an unverified connection. Chains can change, so refresh this configuration when a valid hostname/clock starts failing TLS.
-4. A private Sites deployment additionally requires a Sites service access credential in `SITES_ACCESS_TOKEN`; this is separate from the app's reader token. An ordinary browser cookie or student password is insufficient. The owner must obtain a service credential from the deployment's supported access controls. If those controls cannot issue one, physical reader access to the private demo remains blocked until supported machine access/hosting is arranged. The firmware cannot manufacture or bypass this credential. Leave empty only for a deployment without this outer access boundary.
+4. For the Vercel deployment, leave `SITES_ACCESS_TOKEN` empty. The app reader credential is sufficient; Vercel deployment protection must allow machine requests to the production hostname. The optional Sites header remains in firmware only for older hosting.
 5. Run `pio run`, connect USB, then `pio run --target upload`. Read `pio device monitor` at 115200 baud. The checked-in example compiles but refuses network operation until real configuration and CA trust are supplied. Do not publish your flashed binary: it contains credentials.
 
 ## Enroll arbitrary compatible cards
@@ -49,7 +49,7 @@ Green one pulse means server-confirmed present/late; green two pulses means serv
 
 **No active session?** Check that faculty selected this reader and opened a session. Heartbeat caches session state for at most 20 seconds; the server remains authoritative if the session closes between heartbeat and tap.
 
-**Wi-Fi connects but requests fail?** Confirm time sync (NTP must be reachable), hostname/root CA, reader enabled/token, HTTPS origin and private Sites machine access. 401/403 is a credential/access failure, not attendance success. Captive portals and enterprise campus Wi-Fi may need a different network; this firmware uses personal WPA Wi-Fi, such as a hotspot.
+**Wi-Fi connects but requests fail?** Confirm time sync (NTP must be reachable), hostname/root CA, reader enabled/token, HTTPS origin and deployment access. 401/403 is a credential/access failure, not attendance success. Captive portals and enterprise campus Wi-Fi may need a different network; this firmware uses personal WPA Wi-Fi, such as a hotspot.
 
 **Can someone copy a card?** UID cloning is possible. A supervised assignment demonstration is appropriate; production identity assurance needs a stronger card protocol and threat model.
 

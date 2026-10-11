@@ -58,3 +58,5 @@ next-env.d.ts
 /.audit.env
 /.demo-credentials.md
 *.tsbuildinfo
+
+/.local/

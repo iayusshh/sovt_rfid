@@ -6,7 +6,7 @@ Read README.md, docs/research-attendance.md and .claude/context/rfid-attendance.
 
 College class attendance only; no campus entry/exit or occupancy. Faculty explicitly opens/closes a course session. ESP32+PN532 Type A 13.56MHz Wi-Fi reader; iPhone dashboard only. Snapshot active enrolled students on open; >=10 minutes is late. Closing marks pending roster absent. Duplicate card taps preserve original mark. Present+late divided by closed roster sessions; no denominator means null, no low-attendance alert. Below75% threshold uses the exact ratio. Corrections require a reason and audit history.
 
-Authorization belongs in the server on every request. Admin manages records; faculty only assigned courses; student only self. Keep Sites outer private sign-in/service access and application role login distinct. Reader keys are hashed, rotate immediately revokes them; reader event IDs provide exact replay responses. D1 batches keep open/snapshot and close/absent transitions atomic. Never confirm offline attendance. Runtime secrets and completed firmware credentials remain untracked.
+Authorization belongs in the server on every request. Admin manages records; faculty only assigned courses; student only self. Vercel hosts the Next.js UI and Node API; hosted Turso persists records. App role login and reader credentials enforce access. Reader keys are hashed, rotate immediately revokes them; reader event IDs provide exact replay responses. libSQL write batches keep open/snapshot and close/absent transitions atomic. Never confirm offline attendance. Runtime secrets and completed firmware credentials remain untracked.
 
 ## Verification and release
 
@@ -16,6 +16,8 @@ Run meaningful fresh lifecycle/privacy/idempotency tests against synthetic data,
 
 Version2 only: student profile portal and combined parent/student email. No external notification integration in version1. Do not add generic CRUD/features outside the attendance workflow. Never add AI coauthor trailers to commits.
 
-## Verified delivery snapshot — 11 October 2026
+## Vercel migration
 
-Private Sites publication succeeded and 16 hosted HTTP acceptance assertions passed. Local role browser flows/mobile overflow, 32 independent API checks, restart persistence, late-boundary/denominator checks, and firmware compilation passed. Hosted browser outer account selection failed with OpenAI400 invalid content type; do not describe that browser gate or physical RF as passed. The hosted database has only10 synthetic students and2 faculty plus the explicitly labeled HTTP test session. Keep platform tokens out of screenshots and tracked files.
+Read docs/research-vercel.md and .claude/context/vercel-collaboration.md. Production refuses local database files; local development uses a separate SQLite file. Never attach production secrets to previews. GitHub repository is private; owner manages teammate invitations. Old Sites source and data are an independent archived deployment, not a fallback API.
+
+Run npm run typecheck, lint, test:database, build and the fresh lifecycle audit before release. Record actual hosted/browser outcomes in docs/audit.md. Physical RF validation remains open.

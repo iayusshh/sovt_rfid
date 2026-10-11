@@ -1,5 +1,5 @@
 import fs from "node:fs";
-const base = process.env.ATTENDANCE_URL || "http://127.0.0.1:5173";
+const base = process.env.ATTENDANCE_URL || "http://localhost:3000";
 const local = fs.existsSync(".dev.vars")
   ? Object.fromEntries(
       fs
