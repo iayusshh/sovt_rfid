@@ -21,3 +21,7 @@ Version2 only: student profile portal and combined parent/student email. No exte
 Read docs/research-vercel.md and .claude/context/vercel-collaboration.md. Production refuses local database files; local development uses a separate SQLite file. Never attach production secrets to previews. GitHub repository is private; owner manages teammate invitations. Old Sites source and data are an independent archived deployment, not a fallback API.
 
 Run npm run typecheck, lint, test:database, build and the fresh lifecycle audit before release. Record actual hosted/browser outcomes in docs/audit.md. Physical RF validation remains open.
+
+## Verified Vercel delivery
+
+Public HTTPS alias https://sovt-rfid.vercel.app passed 32 live API assertions and observed administrator/student browser flows. Three database tests, types/lint/build and clean GitHub CI passed. Turso credentials exist only in production; previews/development have no production secrets. Setup token is removed after bootstrap. Private GitHub origin and Vercel Git connection are configured. Owner adds collaborators manually; no invites were sent.

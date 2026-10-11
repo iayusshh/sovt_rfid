@@ -1,3 +1,24 @@
+# Vercel migration acceptance — 11 October 2026
+
+Live application: https://sovt-rfid.vercel.app. The UI and Node attendance API both execute on Vercel. A separate hosted Turso Starter database in Mumbai stores records. There is no API proxy to the old Sites deployment.
+
+## Verified
+
+- Fresh 32-assertion HTTP lifecycle/security audit passed against localhost:3000 and again against the public HTTPS production alias. All three role logins, authorization scoping, origin rejection, atomic attendance transitions, exact-event replay, duplicates, unknown/un-enrolled cards, reader disable/rotation, audited correction and CSV privacy/injection checks passed.
+- Three libSQL tests passed, independently rerun by the migration auditor: foreign-key failure rolls back an entire write batch; 599999/600000/600001 ms late boundary; migration repeatability/checksum enforcement and failed-DDL rollback; production rejects local ephemeral databases.
+- TypeScript, ESLint and production Next.js build passed. GitHub Actions run 38152136009 passed installation, types, lint, database tests and build on a clean runner.
+- Actual Vercel environment scopes were inspected without publishing values: database URL/auth token and app seed secrets were production only; none were attached to previews or development. Bootstrap SETUP_TOKEN is removed after initial seed and disabled in the final deployment.
+- Hosted browser: administrator login, opening a class, synthetic simulated tap and present roster mark succeeded. Closing with explicit confirmation marked nine pending students absent and preserved the one present mark. Student login showed only personal attendance and no admin navigation. These are synthetic demonstration records, not physical RFID reads.
+- Private source repository and Vercel Git integration are connected. GitHub collaboration instructions, pull request template and checks are included; the owner will add teammates himself.
+
+## Remaining physical gate
+
+No ESP32/PN532 hardware was available. Firmware compilation from the original build remains valid, but physical card compatibility, wiring, real Wi-Fi/TLS and LED behavior require the acceptance checklist in docs/hardware.md. Offline scans are not confirmed or queued.
+
+## Historical original-hosting evidence
+
+The following records describe the prior Sites/D1 snapshot, preserved separately on archive/sites-deployment. They do not describe Vercel hosting or its database.
+
 # Independent verification — 11 October 2026
 
 Independent API tests ran against the integrated application at `http://localhost:5173`, using runtime secrets without printing or committing credentials. The test created an isolated synthetic course, student and reader. These records remain as evidence and do not represent actual college attendance.

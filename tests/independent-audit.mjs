@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 // Run only against an isolated synthetic demo. Never use this on real college data.
-const base = process.env.AUDIT_URL || "http://127.0.0.1:8787";
+const base = process.env.AUDIT_URL || "http://localhost:3000";
 const secret = process.env.DEMO_PASSWORD;
 assert(secret, "DEMO_PASSWORD must come from runtime environment");
 const origin = new URL(base).origin;

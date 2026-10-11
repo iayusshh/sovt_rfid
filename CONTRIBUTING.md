@@ -17,7 +17,7 @@ Open a pull request after pushing your branch. Describe what changes for the fac
 
 ## Run a separate demo locally
 
-Use Node.js 22.13 or newer. Copy `.env.example` to the ignored `.env.local` and set `DATABASE_URL` to a local SQLite file, for example `file:./.local/attendance.db`. Create the parent directory first. A private development Turso database is also supported using its URL and `DATABASE_AUTH_TOKEN`.
+Use Node.js 24. Copy `.env.example` to the ignored `.env.local` and set `TURSO_DATABASE_URL` to a local SQLite file, for example `file:./.local/attendance.db`. Create the parent directory first. A private development Turso database is also supported using its URL and `TURSO_AUTH_TOKEN`.
 
 Set fresh setup and reader tokens and a demo password. Do not use the deployed database or credentials for development.
 

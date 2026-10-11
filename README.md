@@ -14,7 +14,9 @@ A session snapshots the enrolled active students when opened. A scan within ten 
 
 ## Hosted demonstration
 
-Hosting target: Vercel project `sovt-rfid`, with both the Next.js website and attendance API running on Vercel. Persistence is a separate hosted Turso database. The migration does not proxy requests to the old Sites app. The original Sites source remains on `archive/sites-deployment`; its database and test records are independent.
+Live app: https://sovt-rfid.vercel.app
+
+Vercel project `sovt-rfid`, with both the Next.js website and attendance API running on Vercel. Persistence is a separate hosted Turso database. The migration does not proxy requests to the old Sites app. The original Sites source remains on `archive/sites-deployment`; its database and test records are independent.
 
 Source: [private GitHub repository](https://github.com/iayusshh/sovt_rfid). The owner adds teammates under **Settings → Collaborators**. See [CONTRIBUTING.md](CONTRIBUTING.md) for the branch and review workflow. GitHub Actions runs checks on pull requests. Teammates need their own development database; preview deployments never receive production database credentials.
 
@@ -31,7 +33,7 @@ The password is supplied in the ignored local `.demo-credentials.md` file; it is
 
 ## Local setup
 
-Node.js 22.18+ (24 recommended) and npm are required. Install with `npm ci`. Copy `.env.example` to `.env.local`, replace tokens/password, and keep the `file:./.local/attendance.db` URL for local development. Create `.local` before migration. `DEMO_READER_TOKEN` must be 64 lowercase hexadecimal characters; the demo password must contain 10–128 characters.
+Node.js 24 and npm are required. Install with `npm ci`. Copy `.env.example` to `.env.local`, replace tokens/password, and keep the `file:./.local/attendance.db` URL for local development. Create `.local` before migration. `DEMO_READER_TOKEN` must be 64 lowercase hexadecimal characters; the demo password must contain 10–128 characters.
 
 ```sh
 mkdir -p .local
@@ -88,8 +90,10 @@ Student profile and management portal, parent contact details, and a single acti
 - `docs/research-attendance.md`, `.claude/context/rfid-attendance.md`: decisions and API contract.
 - `tests/independent-audit.mjs`, `docs/audit.md`: independent verification.
 
+For read-only hosted release checks, run `ATTENDANCE_URL=https://sovt-rfid.vercel.app node --env-file=.env.local scripts/smoke-vercel.mjs`.
+
 Future schema changes append migrations. Do not rewrite an applied migration. Deployment uses Vercel with GitHub source. Main is production; pull requests are reviewed before merging. Provision an isolated database before enabling writable previews.
 
 ### Delivery status — 11 October 2026
 
-The original Sites snapshot passed sixteen hosted HTTP checks. Vercel migration and acceptance results are recorded in docs/audit.md once run. Physical ESP32/PN532 card scanning remains unverified until tested with the actual board and cards.
+Vercel production deployment succeeded. All 32 fresh hosted API lifecycle/privacy checks, three database tests, TypeScript, lint, Next.js build, and GitHub Actions passed. Live administrator login and synthetic card attendance were observed in the browser. See docs/audit.md for scope and evidence. Physical ESP32/PN532 card scanning remains unverified until tested with the actual board and cards.
