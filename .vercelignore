@@ -1,0 +1,14 @@
+.env*
+!.env.example
+.dev.vars*
+.audit.env
+.demo-credentials.md
+.local
+.wrangler
+.sites-runtime
+.agents
+.codex
+outputs
+work
+firmware/include/secrets.h
+firmware/.pio
