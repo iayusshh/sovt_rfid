@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Starter Project",
-  description: "A clean starting point for building your site.",
+  title: "SOVT · RFID Attendance",
+  description: "College RFID attendance: class sessions, student records, reader monitoring and audited reports.",
   other: {
     "codex-preview": "development",
   },
