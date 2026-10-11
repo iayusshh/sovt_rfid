@@ -1,126 +1,88 @@
-# vinext-starter
+# SOVT RFID Attendance
 
-A clean full-stack starter running on [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and Drizzle support.
+A college attendance application with admin, faculty, and student accounts, a persistent database, and a portable ESP32 + PN532 Wi-Fi reader. The iPhone runs the faculty dashboard; it does not scan cards. Sample students are fictional.
 
-## Prerequisites
+## What works in version 1
 
-- Node.js `>=22.13.0`
-- Portable: Windows, macOS, or Linux; no Bash required
-- Managed Linux: managed Linux runtime with Bash, `flock`, `curl`, `sha256sum`, and GNU `timeout`
-- Git is required only for publishing
+- Admin: create/edit/deactivate students, assign card UIDs, create faculty and courses, manage enrollment, provision/disable readers, rotate reader credentials.
+- Faculty: open assigned course sessions, pass the reader around, monitor the live roster, close sessions, and correct marks with an audit reason.
+- Students: view their own attendance and download their own records.
+- Monitoring: live scan outcomes, reader heartbeats, duplicate protection, closed-session attendance percentages, below-75% alerts, and downloadable CSV reports.
+- Reader firmware: Type A 13.56 MHz UID reading, authenticated HTTPS, NTP and trusted root certificates, LED feedback, and stable transport retry IDs. No offline queue or false success indicator.
 
-## Sites Lifecycle
+A session snapshots the enrolled active students when opened. A scan within ten minutes is present; at or after ten minutes it is late. Present and late both count as attended. Closing marks everyone still missing absent. Only completed session rosters count toward the percentage. A repeated tap preserves the first mark. Changed enrollment does not rewrite past rosters. Manual corrections retain actor, before/after status, and reason.
 
-The Sites initializer copies the shared starter and selects managed-linux only when `SITES_MANAGED_LINUX_CONTAINER=1`; otherwise it selects portable. It saves the selection only in ignored `.sites-runtime/execution-profile.json`. Both profiles copy/configure first, then use the plugin's separate `install-dependencies.mjs` step to measure installation independently. Edit source under `app/` and follow the Sites skill for installation, preview, builds, and publishing.
+## Hosted demonstration
 
-Run `node <plugin-root>/scripts/configure-execution-profile.mjs` only when the profile is unknown for the current checkout and environment. Profile changes do not alter tracked source or require reinstalling otherwise-valid dependencies; restart an existing preview to use the new selection. Do not commit or upload `.sites-runtime/`.
+Site: https://sovt-attendance.iayusshh.chatgpt.site
 
-This starter does not use `wrangler.jsonc`.
+The Site stays **owner-private**. Sign in with the owning ChatGPT account first, then use an application demo account. This outer access boundary is preserved for the assignment demo; granting other faculty/students access is a separate hosting-access change. A physical reader uses both the Sites service bearer and its own reader bearer. Device credentials do not grant a user account.
 
-`install:ci` runs `npm ci` once against the shared lockfile, disables parent-workspace discovery, and includes required dev/optional dependencies despite production/omit settings. Sharp defaults to prebuilt binaries unless explicitly configured otherwise. Do not overlap installers.
+Demo accounts:
 
-- **Portable:** Preserve host HOME, npm cache, registry, proxy, temporary paths, retry/concurrency settings, and lifecycle-script policy. Use `--prefer-offline --no-audit --no-fund`.
-- **Managed Linux:** Use the existing project-local HOME/cache/tmp setup and Linux install lock, tarball preflight, and timeout. Restore the image-seeded npm cache only when its lockfile hash matches; retain network fallback. Builds keep their existing timeout. These helpers are not invoked by the portable profile.
+| Role | Email |
+|---|---|
+| Admin | admin@demo.sovt.test |
+| Faculty 1 | faculty1@demo.sovt.test |
+| Faculty 2 | faculty2@demo.sovt.test |
+| Student | student01@demo.sovt.test through student10@demo.sovt.test |
 
-`scripts/sites-env.mjs` preserves the caller's HOME, npm cache, proxy, XDG, and temporary-directory configuration while defaulting Wrangler and Miniflare state to the checkout. If npm reports an unwritable cache, select a writable path with `npm_config_cache` for that install. The `dev` and `start` scripts also keep Wrangler logs inside the checkout. Generated `.sites-runtime/` and `.wrangler/` directories are disposable and ignored by Git.
+The password is supplied in the ignored local `.demo-credentials.md` file; it is never bundled into the website or committed. The deployed database is separate from the local database. The hosting acceptance session is explicitly labeled as an HTTP check of synthetic cards, not a physical card read.
 
-On portable, `npm run dev` uses `vinext dev` with HMR, starting at port 5173. Vinext records the running server in ignored `.vinext/` state, rejects an ordinary duplicate launch, and recovers stale state after a stopped process; exactly simultaneous starts can race. Pass `--port <port>` or `--hostname <host>` after `npm run dev --` when needed; keep portable previews on loopback.
+## Local setup
 
-For browser QA on managed Linux, use `sites-preview start`. The project's dev script runs Vite and accepts the supervisor's `--host 0.0.0.0 --port 4173 --strictPort` arguments. The internal browser uses `http://terminal.local:4173/`; it is not a user-facing URL. The supervisor owns the preview lifecycle. The ignored local profile survives the supervisor's cleared process environment.
-
-The portable profile simulates ChatGPT sign-in only for loopback development requests. Visit `/signin-with-chatgpt?return_to=/` to sign in as `local_seedy` (`seedy@sites.test`, display name `Seedy`) and `/signout-with-chatgpt?return_to=/` to sign out. The development cookie preserves that identity across server restarts. Mock auth is disabled in the managed-linux profile and is not included in production builds; hosted authentication remains dispatch-owned.
-
-The Worker uses `vinext/server/fetch-handler`, including Vinext's config-aware image handling. After building, `npm start` runs that Worker locally through Wrangler on `127.0.0.1`, sharing `.wrangler/state` with dev preview and local D1 migrations; it does not deploy the site or simulate sign-in. Use the URL printed by the server. Pass `npm start -- --port <port>` to select a different built-preview port.
-
-Local previews use Miniflare's placeholder `Request.cf` metadata without a network lookup. Set `CLOUDFLARE_CF_FETCH_ENABLED=true` to opt into fetching preview metadata; this setting does not change hosted request metadata.
-
-Local tool usage metrics are disabled by default. Set `WRANGLER_SEND_METRICS=true` to opt in.
-
-## Included Shape
-
-- edit site code under `app/`
-- `app/chatgpt-auth.ts` provides optional dispatch-owned ChatGPT sign-in helpers
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/index.ts` reads the D1 binding from the Cloudflare Worker environment
-- `db/schema.ts` starts intentionally empty
-- `@cloudflare/workers-types` provides Worker types; `cloudflare-env.d.ts` declares optional `DB`/`BUCKET` bindings—update these declarations if binding names change
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
-
-The user ID is stable for the same user on the same Site and different across Sites. Use it as the durable user key; use email and name for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive `oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty `name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by `oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
-```
-
-## Optional Dispatch-Owned ChatGPT Sign-In
-
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs optional or required ChatGPT sign-in:
-
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use the returned `userId` as the stable user key for user-owned records; do not use email as a durable identifier.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send anonymous visitors through Sign in with ChatGPT.
-- In a Server Component, start sign-in with `<a href={chatGPTSignInPath(returnTo)} target="_top">`. The auth helper module is server-only; do not import it into a Client Component.
-- Do not use `fetch`, XHR, a client-side router, or a framework link that can prefetch the sign-in route. SIWC must start as a top-level navigation.
-- Never request the AuthAPI authorization endpoint directly. The dispatch-owned `/signin-with-chatgpt` route must start the SIWC flow.
-- Use `chatGPTSignOutPath(returnTo)` for browser sign-out links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the OAuth cookies, and identity header injection. Do not implement app routes for those reserved paths. Routes that do not import and call the helper remain anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the Sites hosting platform's access policy controls for workspace-wide restrictions, or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Local D1 migrations
-
-For a D1-backed local preview, generate SQL with `npm run db:generate`. Build once through the Sites skill's build entrypoint (or `npm run build` for standalone use) to generate `dist/server/wrangler.json`, rebuilding if bindings change. From the project root, apply each pending migration in order:
+Node.js 22.13+ and npm are required. Install dependencies with `npm ci`. Copy `.env.example` to `.dev.vars` and replace its values. Generate tokens with a cryptographic random generator; `DEMO_READER_TOKEN` must be 64 lowercase hexadecimal characters. Use a password of 10–128 characters.
 
 ```sh
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_example.sql
+npm run db:generate  # only after a deliberate schema change
+npm run build
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_bumpy_tana_nile.sql
+npm run dev
 ```
 
-Replace the filename with the pending migration and `DB` with your D1 binding name if different. Use `.wrangler/state`, not `.wrangler/state/v3`; Wrangler adds the versioned directories. Do not replay migrations already applied locally. This updates only the preview database; publishing applies production migrations separately.
+Apply the migration only once on a new local database; it is already applied in this checkout. In another terminal, run `node scripts/bootstrap-demo.mjs`. It creates the 10 students, 2 faculty, two courses, and reader without creating historical attendance. Repeated bootstrap preserves existing records. Open the printed local preview URL, then sign in with the configured demo password. Browser-local storage is not the attendance database.
 
-## Diagnostic Commands
+Use `npm start` to preview the built Worker. It shares the persistent local D1 state with development. Secrets stay in ignored `.dev.vars`; hosted secrets are configured through Sites runtime settings. Do not commit completed firmware `secrets.h` or publish firmware binaries containing secrets.
 
-- `npm run install:ci`: perform the one locked dependency install
-- `npm run dev`: start the Vite/Vinext development server
-- `npm run build`: build the deployable Sites artifact
-- `npm run start`: preview the built Worker locally with D1/R2 support
-- `npm run db:generate`: generate Drizzle migrations after schema changes
+## Demonstration sequence
 
-When using the Sites plugin, follow its skill instructions for installation, builds, and publishing. These npm commands remain available for standalone use.
+1. Sign in as admin. Review Students, Courses and enrollment. Replace a student's synthetic UID with a discovered physical card UID when hardware is available.
+2. Provision a reader or use the demo reader with its configured key. Follow [the hardware guide](docs/hardware.md), including discovery mode and the private Sites service credential.
+3. Sign in as Faculty 1 and open a Database Systems session on that reader.
+4. Tap an enrolled card. The roster updates every three seconds. For a hardware-free demonstration, use the clearly labeled **Synthetic scan simulator**; its marks retain `simulated` as their source.
+5. Retap the same card to observe duplicate preservation; try an unregistered card to observe rejection.
+6. Close the session, inspect absent marks, make a correction with a reason, and download CSV.
+7. Sign in as a student to see only that student's records. Review below-75% attention and audit history as admin.
 
-The portable build runs Vinext directly without a host `timeout` command. The managed-linux build uses `scripts/build-verified.sh` and its existing `SITES_BUILD_TIMEOUT` setting.
+## Verification and limitations
 
-## Learn More
+See [independent audit](docs/audit.md) for the fresh executed results. Local API lifecycle/security, restart persistence, exact late boundary and actual late HTTP behavior were verified independently. TypeScript, production build, browser session workflow, and firmware compilation were checked. Physical board/card, wiring, LED, Wi-Fi/TLS operation on the board, and compatibility with your existing college ID require hardware acceptance using the checklist in [docs/hardware.md](docs/hardware.md). A compiled firmware or an HTTP submission is not proof of an RF read.
 
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+The private Site service token must be provisioned securely to the reader. This repo intentionally has no actual credentials in tracked source. Without network access the reader reports failure; remove the card and retap online, checking the roster if a response was lost. Faculty can repair attendance with an audited reason.
+
+This assignment identifies students by a card UID. It does not prevent card lending or UID cloning. Use authenticated cards and stronger identity checks if extending it beyond an assignment demonstration.
+
+Run the destructive synthetic-data audit only against a disposable/local demonstration:
+
+```sh
+AUDIT_URL=http://127.0.0.1:5173 DEMO_PASSWORD='<configured password>' node tests/independent-audit.mjs
+npx tsc --noEmit
+npm run build
+```
+
+It creates clearly named test students/courses/readers and does not erase historical records. Never run it against real college records. The test reads secrets from the environment; do not put real credentials into shell history. An ignored environment file or stdin-driven wrapper is preferable.
+
+## Version 2
+
+Student profile and management portal, parent contact details, and a single action to email the student and parent together. External messaging is intentionally not implemented in version 1.
+
+## Source map
+
+- `app/page.tsx`, `app/globals.css`: role-aware responsive workspace.
+- `app/api/[...path]/route.ts`, `lib/attendance-api.ts`: authenticated API and attendance transactions.
+- `db/schema.ts`, `drizzle/`: versioned D1 schema and migration.
+- `firmware/`: PlatformIO ESP32 firmware with secure configuration example.
+- `docs/research-attendance.md`, `.claude/context/rfid-attendance.md`: decisions and API contract.
+- `tests/independent-audit.mjs`, `docs/audit.md`: independent verification.
+
+Future schema changes append migrations. Do not rewrite an applied migration. Deployment uses the installed Sites workflow to push exact source, package the matching build, and publish that saved version.

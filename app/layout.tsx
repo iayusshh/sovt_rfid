@@ -3,10 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "SOVT · RFID Attendance",
-  description: "College RFID attendance: class sessions, student records, reader monitoring and audited reports.",
-  other: {
-    "codex-preview": "development",
-  },
+  description:
+    "College RFID attendance: class sessions, student records, reader monitoring and audited reports.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

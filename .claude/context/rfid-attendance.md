@@ -35,3 +35,6 @@ Bootstrap via POST /setup with x-setup-token runtime secret; seeded admin@demo.s
 - Hardware verified: PlatformIO esp32dev release build succeeded (Arduino ESP32 2.0.17, PN532 1.3.4, ArduinoJson 7.4.2); RAM 39,672 B, flash 685,497 B. No physical reader/RF/TLS credential acceptance claimed. Hardware branch ready for integration.
 
 - Frontend: Complete role-aware workspace implemented on isolated UI branch; custom ivory/ink/indigo tables, login, roster polling/corrections, admin directories, reader tokens, reports and practical reader guide. Uses only React and lucide-react; no starter components or new dependencies. TypeScript and UI lint checks underway.
+- Audit complete locally: fresh independent HTTP suite 32 assertions passed, restart persistence 2 assertions passed, synthetic eleven-minute fixture real bearer late path and denominator 5 checks passed; exact SQLite predicate 599999/600000/600001ms present/late/late. Initial precision/CSV contract findings resolved. Physical hardware and hosted/rendered acceptance remain owned by primary/user. Audit report records limits.
+
+- Frontend followup: All native confirms replaced by labeled in-app dialogs for class close, enrollment removal and token rotation. Shared modal focuses initial control, traps Tab, restores prior focus, handles Escape and makes background inert. TypeScript and UI lint pass.
