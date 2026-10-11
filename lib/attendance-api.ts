@@ -1,5 +1,8 @@
-import { env } from "cloudflare:workers";
+import { database } from "./database";
+import type { InValue } from "@libsql/client";
 
+// SQL projections and validated request bodies have endpoint-specific shapes.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = Record<string, any>;
 type User = {
   id: string;
@@ -17,40 +20,37 @@ const hash = async (value: string) =>
   bytesHex(
     await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)),
   );
-function db(): D1Database {
-  if (!env.DB) throw new Error("Database is not configured");
-  return env.DB;
-}
-const stmt = (s: string, ...p: any[]) =>
+const db = database;
+const stmt = (s: string, ...p: InValue[]) =>
   db()
     .prepare(s)
     .bind(...p);
-async function all(s: string, ...p: any[]): Promise<Row[]> {
+async function all(s: string, ...p: InValue[]): Promise<Row[]> {
   return (await stmt(s, ...p).all()).results as Row[];
 }
-async function one(s: string, ...p: any[]): Promise<Row | null> {
+async function one(s: string, ...p: InValue[]): Promise<Row | null> {
   return await stmt(s, ...p).first<Row>();
 }
 function error(message: string, status = 400): never {
   throw Object.assign(new Error(message), { status });
 }
-function out(data: any, status = 200, headers: Record<string, string> = {}) {
+function out(data: unknown, status = 200, headers: Record<string, string> = {}) {
   return Response.json(data, {
     status,
     headers: { "Cache-Control": "no-store", ...headers },
   });
 }
-function text(v: any, label: string, max = 150): string {
+function text(v: unknown, label: string, max = 150): string {
   if (typeof v !== "string" || !v.trim() || v.trim().length > max)
     error(`${label} is required (maximum ${max} characters)`);
   return v.trim();
 }
-function email(v: any): string {
+function email(v: unknown): string {
   const s = text(v, "Email", 254).toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) error("Enter a valid email");
   return s;
 }
-function uid(v: any): string {
+function uid(v: unknown): string {
   const s = text(v, "Card UID", 40)
     .replace(/[\s:-]/g, "")
     .toUpperCase();
@@ -58,7 +58,7 @@ function uid(v: any): string {
     error("UID must contain 8, 14, or 20 hexadecimal characters");
   return s;
 }
-function password(v: any): string {
+function password(v: unknown): string {
   if (typeof v !== "string" || v.length < 10 || v.length > 128)
     error("Password must be 10–128 characters");
   return v;
@@ -170,7 +170,7 @@ async function reader(req: Request) {
   return r;
 }
 
-// Attendance insert and event calculation execute in one D1 transaction. Both
+// Attendance insert and event calculation execute in one libSQL transaction. Both
 // the roster and open-session predicates are checked inside the insert.
 async function scan(r: Row, card: string, eventId: string, source: string) {
   const existing = await one(
@@ -342,7 +342,7 @@ async function state(u: User) {
   };
 }
 async function setup(req: Request) {
-  const cfg = env as unknown as Record<string, string>;
+  const cfg = process.env;
   if (!cfg.SETUP_TOKEN || req.headers.get("x-setup-token") !== cfg.SETUP_TOKEN)
     error("Setup credential required", 401);
   if (!cfg.DEMO_PASSWORD || !cfg.DEMO_READER_TOKEN)
@@ -455,7 +455,7 @@ export async function handleApi(req: Request): Promise<Response> {
         p = typeof b.password === "string" ? b.password : "";
       if (p.length > 128) error("Invalid email or password", 401);
       const key = await hash(
-          `${em}:${req.headers.get("cf-connecting-ip") || "local"}`,
+          `${em}:${req.headers.get("x-vercel-forwarded-for") || "local"}`,
         ),
         time = now();
       await stmt(
@@ -933,7 +933,7 @@ export async function handleApi(req: Request): Promise<Response> {
       );
       const sids = scopedSessions.map((s) => s.id);
       const marks = data.attendance.filter((a) => sids.includes(a.sessionId));
-      const escape = (v: any) => {
+      const escape = (v: unknown) => {
         let s = String(v ?? "");
         if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
         return '"' + s.replace(/"/g, '""') + '"';
@@ -978,9 +978,11 @@ export async function handleApi(req: Request): Promise<Response> {
       );
     }
     error("Endpoint not found", 404);
-  } catch (e: any) {
-    if (e.status) return out({ error: e.message }, e.status);
-    if (/UNIQUE constraint|unique constraint/i.test(e.message))
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    if (e instanceof Error && "status" in e && typeof e.status === "number")
+      return out({ error: message }, e.status);
+    if (/UNIQUE constraint|unique constraint/i.test(message))
       return out(
         {
           error:
@@ -988,9 +990,9 @@ export async function handleApi(req: Request): Promise<Response> {
         },
         409,
       );
-    if (/FOREIGN KEY constraint/i.test(e.message))
+    if (/FOREIGN KEY constraint/i.test(message))
       return out({ error: "A referenced record does not exist" }, 400);
-    console.error("Attendance API failure:", e.message);
+    console.error("Attendance API failure:", message);
     return out(
       { error: "The request could not be completed. Please retry." },
       500,
