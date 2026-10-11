@@ -54,3 +54,7 @@ next-env.d.ts
 /.codex/
 /outputs/
 /work/
+/.dev.vars*
+/.audit.env
+/.demo-credentials.md
+*.tsbuildinfo

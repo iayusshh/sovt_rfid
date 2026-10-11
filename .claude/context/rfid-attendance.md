@@ -20,7 +20,7 @@ All endpoints under /api. Successful responses direct JSON; failures {error:stri
 - GET /sessions/:id/roster -> {rows:[{studentId,name,roll,status:'pending'|'present'|'late'|'absent',markedAt}],session}.
 - PATCH /attendance {sessionId,studentId,status,reason} -> {ok:true}. Admin or assigned faculty.
 - POST /simulate {readerId,uid} -> scan response. Admin/assigned faculty; clearly synthetic demo only. Same scan processor, source='simulated' (attendance source may also be 'simulated').
-- GET /reports.csv?courseId=<optional> -> protected CSV per-student closed-session aggregate with status counts. Optional sessionId can export a session roster.
+- GET /reports.csv?courseId=<optional> -> protected detailed CSV per-student marks in closed sessions. Optional sessionId can export a session roster.
 - POST /device/heartbeat {} bearer reader credential -> {readerId,sessionId:null|string,serverTime}; POST /device/scan {uid,eventId} bearer -> {outcome:'present'|'late'|'duplicate'|'unknown_card'|'not_enrolled'|'no_session'|'disabled',message,studentName?,sessionId?,serverTime}. eventId unique UUID-like <=100 chars; identical replay returns original result. Input UID normalized uppercase hex, no separators, 8/14/20 hex chars. Device heartbeat every 20 sec; online indicator within 60 sec. Network failure means retry online, no fake success.
 
 ## Demonstration
@@ -28,3 +28,10 @@ Bootstrap via POST /setup with x-setup-token runtime secret; seeded admin@demo.s
 
 ## Progress
 - Primary: research and contract captured; site registered private; dependencies installing.
+- Audit: independent API test and criteria committed ca7a705 in audit/attendance. Awaiting integrated server URL/runtime env path. Late boundary and restart need observed time fixture/restart; audit not complete from test presence.
+
+- Hardware: official Adafruit/Espressif research recorded, wiring/config/physical acceptance guide and secure ESP32 firmware written; local PlatformIO compile underway.
+
+- Hardware verified: PlatformIO esp32dev release build succeeded (Arduino ESP32 2.0.17, PN532 1.3.4, ArduinoJson 7.4.2); RAM 39,672 B, flash 685,497 B. No physical reader/RF/TLS credential acceptance claimed. Hardware branch ready for integration.
+
+- Frontend: Complete role-aware workspace implemented on isolated UI branch; custom ivory/ink/indigo tables, login, roster polling/corrections, admin directories, reader tokens, reports and practical reader guide. Uses only React and lucide-react; no starter components or new dependencies. TypeScript and UI lint checks underway.
