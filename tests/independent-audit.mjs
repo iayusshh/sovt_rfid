@@ -63,6 +63,7 @@ const readerR = await api('/readers',{cookie:admin,method:'POST',body:{name:`Aud
 assert([200,201].includes(readerR.status),JSON.stringify(readerR.data));
 const {reader, token} = readerR.data; assert(reader?.id && token);
 expect((await api('/device/heartbeat',{method:'POST',body:{}})).status===401,'reader heartbeat requires credential');
+expect((await api('/device/scan',{method:'POST',token,body:{uid:original.cardUid,eventId:`no-session-${stamp}`}})).data.outcome==='no_session','scan without open session rejected');
 expect((await api('/device/scan',{method:'POST',token:'invalid',body:{uid:original.cardUid,eventId:`bad-${stamp}`}})).status===401,'invalid reader credential rejected');
 const opened = await api('/sessions',{cookie:faculty,method:'POST',body:{courseId:course.id,readerId:reader.id,title:`Audit ${stamp}`}});
 assert([200,201].includes(opened.status),JSON.stringify(opened.data));
@@ -88,6 +89,8 @@ assert.equal((await api(`/readers/${reader.id}`,{cookie:admin,method:'PATCH',bod
 const disabled = await api('/device/scan',{method:'POST',token:nextToken,body:{uid:original.cardUid,eventId:`disabled-${stamp}`}});
 expect(disabled.status===403 || disabled.data.outcome==='disabled','disabled reader cannot mark attendance');
 assert.equal((await api(`/sessions/${session.id}/close`,{cookie:faculty,method:'POST'})).status,200);
+assert.equal((await api(`/readers/${reader.id}`,{cookie:admin,method:'PATCH',body:{active:true}})).status,200);
+expect((await api('/device/scan',{method:'POST',token:nextToken,body:{uid:extra.cardUid,eventId:`closed-${stamp}`}})).data.outcome==='no_session','scan after close cannot overwrite closure');
 const closed = (await api(`/sessions/${session.id}/roster`,{cookie:faculty})).data.rows;
 expect(closed.find(r=>r.studentId===extra.id)?.status==='absent','closing marks unswiped snapshot student absent');
 expect(closed.find(r=>r.studentId===original.id)?.status==='present','closing preserves present attendance');
