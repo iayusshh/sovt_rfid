@@ -54,6 +54,7 @@ const created = await api('/students',{cookie:admin,method:'POST',body:{name:'=A
 assert([200,201].includes(created.status),JSON.stringify(created.data));
 const fresh = (await api('/state',{cookie:admin})).data;
 const extra = fresh.students.find(s=>s.roll===`AUD-${stamp}`); assert(extra);
+expect(extra.total===0 && extra.percentage===null,'student without closed roster denominator has null percentage');
 const courseR = await api('/courses',{cookie:admin,method:'POST',body:{code:`AUD${stamp}`,name:'Audit course',facultyId:fstate.user.id,room:'Audit'}});
 assert([200,201].includes(courseR.status),JSON.stringify(courseR.data));
 const courses = (await api('/state',{cookie:admin})).data.courses;
@@ -78,6 +79,7 @@ const scan = await api('/device/scan',{method:'POST',token,body:{uid:original.ca
 expect(scan.data.outcome==='present','first enrolled card scan present before ten minutes');
 const replay = await api('/device/scan',{method:'POST',token,body:{uid:original.cardUid,eventId:`first-${stamp}`}});
 expect(JSON.stringify(replay.data)===JSON.stringify(scan.data),'same event replay returns exact original result');
+expect((await api('/device/scan',{method:'POST',token,body:{uid:extra.cardUid,eventId:`first-${stamp}`}})).status===409,'event identifier cannot be reused for a different card');
 expect((await api('/device/scan',{method:'POST',token,body:{uid:original.cardUid,eventId:`duplicate-${stamp}`}})).data.outcome==='duplicate','fresh repeated tap is duplicate');
 expect((await api('/device/scan',{method:'POST',token,body:{uid:'04ABCDEF010203',eventId:`unknown-${stamp}`}})).data.outcome==='unknown_card','unknown card rejected');
 const outside = astate.students.find(s=>s.id!==original.id);
