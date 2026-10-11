@@ -86,3 +86,7 @@ Student profile and management portal, parent contact details, and a single acti
 - `tests/independent-audit.mjs`, `docs/audit.md`: independent verification.
 
 Future schema changes append migrations. Do not rewrite an applied migration. Deployment uses the installed Sites workflow to push exact source, package the matching build, and publish that saved version.
+
+### Delivery status — 11 October 2026
+
+Private publication succeeded; 16 hosted HTTP acceptance checks passed, including all three role logins and the reader's two authentication layers. Local browser workflows and mobile layout were observed. The hosted browser's outer OpenAI account-selection step returned a provider400 content-type error during verification, so signing in through that hosted browser boundary remains an open gate. Physical card scanning also remains an open hardware gate. You can exercise the verified application locally while checking hosted owner sign-in in your normal browser.

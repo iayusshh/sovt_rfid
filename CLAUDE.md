@@ -15,3 +15,7 @@ Run meaningful fresh lifecycle/privacy/idempotency tests against synthetic data,
 ## Deferred
 
 Version2 only: student profile portal and combined parent/student email. No external notification integration in version1. Do not add generic CRUD/features outside the attendance workflow. Never add AI coauthor trailers to commits.
+
+## Verified delivery snapshot — 11 October 2026
+
+Private Sites publication succeeded and 16 hosted HTTP acceptance assertions passed. Local role browser flows/mobile overflow, 32 independent API checks, restart persistence, late-boundary/denominator checks, and firmware compilation passed. Hosted browser outer account selection failed with OpenAI400 invalid content type; do not describe that browser gate or physical RF as passed. The hosted database has only10 synthetic students and2 faculty plus the explicitly labeled HTTP test session. Keep platform tokens out of screenshots and tracked files.

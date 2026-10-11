@@ -31,3 +31,13 @@ Run `tests/independent-audit.mjs` with `AUDIT_URL` and `DEMO_PASSWORD` in the en
 ## Remaining acceptance boundaries
 
 Hosted deployment and rendered browser checks are owned by the primary agent and must be recorded separately. Real PN532 card reads, college-ID compatibility, actual board wiring and visible physical success/failure indicators were unavailable to this audit agent; they remain physical acceptance gates. UID-based identification is suitable for this assignment demonstration, not cryptographic proof of student identity.
+
+## Primary integration and deployment evidence
+
+The integrated application passed TypeScript and its production build. Browser verification observed admin sign-in, class opening with ten roster rows, simulated present attendance, in-app class closure changing pending rows to absent, student-only navigation/records, and assigned faculty course visibility. The 390×844 mobile viewport had a 390px page width; wide tables scrolled inside their own panels. Native browser confirmations were replaced with accessible in-app dialogs and the closure was reverified. Logout/session expiry clears account state and one-time reader credentials.
+
+The ESP32 firmware compiled with PlatformIO, official Adafruit PN532 1.3.4 and ESP32 Arduino 2.0.17: RAM 39,672 bytes (12.1%) and flash 685,497 bytes (52.3%). This is build evidence, not hardware operation.
+
+Sites deployment `appgdep_6acba5f943d0819193519c1b0d08a007` succeeded for source `59bc55205bfeb1cd984797d64285ac3bbb7b0d81`, with runtime secret revision 1 at https://sovt-attendance.iayusshh.chatgpt.site. A fresh hosted acceptance run passed 16 assertions: private access boundary, migration/bootstrap, no account privilege from service access, three role logins, exact 10-student/2-faculty seed, own-student scope, faculty restriction, reader heartbeat through both credential layers, session opening, first HTTP card present, duplicate preservation, closure, nine absent roster members, and student percentage. The hosted test session is explicitly named “HTTP acceptance check · synthetic cards”. These are online HTTP checks; the reader was not physically connected.
+
+The hosted browser reached the private Sites sign-in page. The OpenAI account-selection page returned an external `400 Invalid content type: text/html; charset=UTF-8` error on the owner sign-in attempt. Therefore hosted browser access beyond that platform boundary remains unverified despite successful authenticated service-path API checks. The local rendered application and roles were observed. No audience/security change was used to bypass the sign-in failure.
