@@ -2,7 +2,7 @@
 
 A college attendance application with admin, faculty, and student accounts, a persistent database, and an Android phone as the card reader: the class roster page uses Web NFC in Chrome to read the college ID's NFC serial number and records attendance. No app is needed. Whether a given college ID is readable must be checked first ([setup guide](docs/android-reader.md)). An iPhone could not read the owner's ID through Shortcuts and was dropped. Sample students are fictional.
 
-## What works in version 1
+## What works in version 1 (v1.0.0)
 
 - Admin: create/edit/deactivate students, assign card UIDs (including one click from the Unassigned cards list of recent unregistered taps), create faculty and courses, manage enrollment, provision/disable readers, rotate reader credentials.
 - Faculty: open assigned course sessions, pass the reader around, monitor the live roster, close sessions, and correct marks with an audit reason.
