@@ -4,13 +4,13 @@ Read README.md, docs/research-attendance.md and .claude/context/rfid-attendance.
 
 ## Current contract
 
-College class attendance only; no campus entry/exit or occupancy. Faculty explicitly opens/closes a course session. Reader is the faculty iPhone: one Apple Shortcut loops Scan NFC Tag and posts the serial to /api/device/scan with that phone's own reader credential (no developer account, no native app; ESP32 firmware removed). Whether the college ID's serial is readable is unverified; fallback is an NTAG sticker on the ID. docs/iphone-reader.md has the probe. Snapshot active enrolled students on open; >=10 minutes is late. Closing marks pending roster absent. Duplicate card taps preserve original mark. Present+late divided by closed roster sessions; no denominator means null, no low-attendance alert. Below75% threshold uses the exact ratio. Corrections require a reason and audit history.
+College class attendance only; no campus entry/exit or occupancy. Faculty explicitly opens/closes a course session. Reader is the faculty's Android phone: Chrome Web NFC on the class roster posts each serial to /api/sessions/:id/tap using the faculty session (iPhone Shortcuts could not read the ID; ESP32 firmware removed; /api/device/* reader-token endpoints remain). Whether the college ID is readable in Web NFC is unverified; fallback is an NTAG sticker. docs/android-reader.md has the check. Snapshot active enrolled students on open; >=10 minutes is late. Closing marks pending roster absent. Duplicate card taps preserve original mark. Present+late divided by closed roster sessions; no denominator means null, no low-attendance alert. Below75% threshold uses the exact ratio. Corrections require a reason and audit history.
 
-Authorization belongs in the server on every request. Admin manages records; faculty only assigned courses; student only self. Vercel hosts the Next.js UI and Node API; hosted Turso persists records. App role login and reader credentials enforce access. Reader keys are hashed, rotate immediately revokes them; reader event IDs provide exact replay responses. libSQL write batches keep open/snapshot and close/absent transitions atomic. Never confirm offline attendance. Runtime secrets and exported Shortcuts (they embed the reader token) remain untracked.
+Authorization belongs in the server on every request. Admin manages records; faculty only assigned courses; student only self. Vercel hosts the Next.js UI and Node API; hosted Turso persists records. App role login and reader credentials enforce access. Reader keys are hashed, rotate immediately revokes them; reader event IDs provide exact replay responses. libSQL write batches keep open/snapshot and close/absent transitions atomic. Never confirm offline attendance. Runtime secrets remain untracked.
 
 ## Verification and release
 
-Run meaningful fresh lifecycle/privacy/idempotency tests against synthetic data, TypeScript and production build, and rendered desktop/mobile checks. An HTTP test does not verify an NFC read on a real iPhone/ID. Keep docs/audit.md honest about live/local/physical boundaries. Update README and this file after verified behavior changes. Check current deployment before making deployment claims. Schema migrations are immutable once applied; append new migrations and update the generated journal.
+Run meaningful fresh lifecycle/privacy/idempotency tests against synthetic data, TypeScript and production build, and rendered desktop/mobile checks. An HTTP test does not verify an NFC read on a real Android phone/ID. Keep docs/audit.md honest about live/local/physical boundaries. Update README and this file after verified behavior changes. Check current deployment before making deployment claims. Schema migrations are immutable once applied; append new migrations and update the generated journal.
 
 ## Deferred
 
@@ -20,7 +20,7 @@ Version2 only: student profile portal and combined parent/student email. No exte
 
 Read docs/research-vercel.md and .claude/context/vercel-collaboration.md. Production refuses local database files; local development uses a separate SQLite file. Never attach production secrets to previews. GitHub repository is private; owner manages teammate invitations. Old Sites source and data are an independent archived deployment, not a fallback API.
 
-Run npm run typecheck, lint, test:database, build and the fresh lifecycle audit before release. Record actual hosted/browser outcomes in docs/audit.md. Physical iPhone NFC validation remains open.
+Run npm run typecheck, lint, test:database, build and the fresh lifecycle audit before release. Record actual hosted/browser outcomes in docs/audit.md. Physical Android NFC validation remains open.
 
 ## Verified Vercel delivery
 

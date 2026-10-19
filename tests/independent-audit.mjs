@@ -140,6 +140,22 @@ assert([200, 201].includes(created.status), JSON.stringify(created.data));
 const fresh = (await api("/state", { cookie: admin })).data;
 const extra = fresh.students.find((s) => s.roll === `AUD-${stamp}`);
 assert(extra);
+const webCreated = await api("/students", {
+  cookie: admin,
+  method: "POST",
+  body: {
+    name: "Web tap audit",
+    roll: `WEB-${stamp}`,
+    email: `web-${stamp}@demo.sovt.test`,
+    cardUid: `05${BigInt(stamp).toString(16).padStart(12, "0").slice(-12)}`,
+    password: secret,
+  },
+});
+assert([200, 201].includes(webCreated.status), JSON.stringify(webCreated.data));
+const webStudent = (await api("/state", { cookie: admin })).data.students.find(
+  (s) => s.roll === `WEB-${stamp}`,
+);
+assert(webStudent);
 expect(
   extra.total === 0 && extra.percentage === null,
   "student without closed roster denominator has null percentage",
@@ -158,7 +174,7 @@ assert([200, 201].includes(courseR.status), JSON.stringify(courseR.data));
 const courses = (await api("/state", { cookie: admin })).data.courses;
 const course = courses.find((c) => c.code === `AUD${stamp}`);
 assert(course);
-for (const studentId of [original.id, extra.id])
+for (const studentId of [original.id, extra.id, webStudent.id])
   assert.equal(
     (
       await api("/enrollments", {
@@ -298,17 +314,39 @@ expect(
   ).data.outcome === "unknown_card",
   "unknown card rejected",
 );
-// Apple Shortcuts sends the serial as "aa:bb:..." and no Origin header.
-const shortcutUid = original.cardUid.toLowerCase().match(/../g).join(":");
+// Web NFC reports the serial as "aa:bb:..." and no Origin header.
+const nfcUid = original.cardUid.toLowerCase().match(/../g).join(":");
 expect(
   (
     await api("/device/scan", {
       method: "POST",
       token,
-      body: { uid: shortcutUid, eventId: `shortcut-${stamp}` },
+      body: { uid: nfcUid, eventId: `serial-${stamp}` },
     })
   ).data.outcome === "duplicate",
-  "colon-separated lowercase serial from Shortcuts matches the card",
+  "colon-separated lowercase serial from a phone matches the card",
+);
+// Browser (Web NFC) reader: signed-in faculty taps for their own open session.
+const tap = (cookie, uidValue, eventId) =>
+  api(`/sessions/${session.id}/tap`, {
+    cookie,
+    method: "POST",
+    body: { uid: uidValue, eventId },
+  });
+const webUid = webStudent.cardUid.toLowerCase().match(/../g).join(":");
+expect(
+  (await tap(studentCookie, webUid, `w0-${stamp}`)).status === 403 &&
+    (await tap(faculty2, webUid, `w0-${stamp}`)).status === 403,
+  "web tap rejected for students and unassigned faculty",
+);
+const webFirst = await tap(faculty, webUid, `w1-${stamp}`);
+expect(
+  webFirst.data.outcome === "present",
+  "assigned faculty web tap records present",
+);
+expect(
+  (await tap(faculty, webUid, `w2-${stamp}`)).data.outcome === "duplicate",
+  "repeated web tap preserves the first mark",
 );
 const unknownEvent = (await api("/state", { cookie: admin })).data.events.find(
   (e) => e.uid === "04ABCDEF010203",
@@ -366,6 +404,10 @@ assert.equal(
     })
   ).status,
   200,
+);
+expect(
+  (await tap(faculty, webUid, `w3-${stamp}`)).status === 409,
+  "web tap rejected after the class is closed",
 );
 assert.equal(
   (

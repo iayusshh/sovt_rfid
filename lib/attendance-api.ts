@@ -34,7 +34,11 @@ async function one(s: string, ...p: InValue[]): Promise<Row | null> {
 function error(message: string, status = 400): never {
   throw Object.assign(new Error(message), { status });
 }
-function out(data: unknown, status = 200, headers: Record<string, string> = {}) {
+function out(
+  data: unknown,
+  status = 200,
+  headers: Record<string, string> = {},
+) {
   return Response.json(data, {
     status,
     headers: { "Cache-Control": "no-store", ...headers },
@@ -901,6 +905,22 @@ export async function handleApi(req: Request): Promise<Response> {
         ),
       ]);
       return out({ ok: true });
+    }
+    if (/^sessions\/[^/]+\/tap$/.test(path) && method === "POST") {
+      // Browser NFC reader (Web NFC on Android Chrome): the signed-in faculty
+      // taps cards for their own open session, through the same scan processor.
+      const s = await canSession(u, path.split("/")[1]),
+        b = await body(req);
+      if (s.status !== "open") error("This class session is closed", 409);
+      const r = await one("SELECT * FROM readers WHERE id=?", s.reader_id);
+      return out(
+        await scan(
+          r!,
+          uid(b.uid),
+          `web-${text(b.eventId, "Event identifier", 90)}`,
+          "nfc",
+        ),
+      );
     }
     if (path === "simulate" && method === "POST") {
       const b = await body(req),

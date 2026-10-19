@@ -6,9 +6,9 @@ Describe the attendance workflow affected and the resulting behavior.
 
 - [ ] Typecheck, lint, database tests, and production build pass.
 - [ ] Relevant admin, faculty, or student workflow checked in a browser.
-- [ ] Secrets and exported Shortcuts (they embed reader tokens) are excluded.
+- [ ] Secrets and reader tokens are excluded.
 
-For attendance changes, record the relevant checks: duplicate taps, ten-minute late boundary, closing absences, enrollment snapshot, or audited correction. For reader changes, distinguish HTTP tests from a real iPhone/ID read.
+For attendance changes, record the relevant checks: duplicate taps, ten-minute late boundary, closing absences, enrollment snapshot, or audited correction. For reader changes, distinguish HTTP tests from a real Android/ID read.
 
 ## Database / deployment
 

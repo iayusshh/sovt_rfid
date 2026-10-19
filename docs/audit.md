@@ -1,13 +1,13 @@
-# iPhone Shortcuts reader change — 19 October 2026
+# Android Web NFC reader change — 19 October 2026
 
-Scope: ESP32 firmware and hardware guide removed; faculty iPhone Shortcut is the reader; Admin → Activity gained an Unassigned cards list. Server API unchanged.
+Scope: iPhone Shortcut path dropped; class roster has a Phone NFC reader (Web NFC, Chrome on Android) calling the new `POST /api/sessions/:id/tap`; Admin → Activity has an Unassigned cards list.
 
 ## Verified (local, synthetic data, dev server on a fresh SQLite file)
-- Independent HTTP audit including two new assertions: a lowercase colon-separated serial with no Origin header (as Shortcuts sends) matches the card, and an unregistered tap is visible to admin. Three database tests, TypeScript, ESLint and production build passed.
-- Browser: admin Activity tab listed unassigned UIDs from taps made with a Shortcut-shaped request; assigning one to a student saved and removed it from the list.
+- Independent HTTP audit including new assertions: students and unassigned faculty get 403 from the tap endpoint; assigned faculty tap records present; a repeat preserves the first mark; a tap after close is rejected; a colon-separated lowercase serial matches its card; unregistered taps are visible to admin. Three database tests, TypeScript, ESLint and the production build also passed.
+- Browser: admin Activity tab listed unassigned UIDs and assigning one to a student saved. In desktop Chrome the scan panel reports no NFC support; with an injected fake `NDEFReader`, a repeated serial was debounced to one tap, a registered card showed present and an unknown card showed rejected.
 
 ## Not verified
-- A real iPhone running the Shortcut, and whether the real college ID exposes a stable readable serial. Hosted: pushed to main as 45040b4; Vercel production deployment reached Ready, the public alias serves the new UI bundle and the device API answers 401 without a credential. The full lifecycle audit was not re-run against production (its credentials are not local).
+- The scanner UI on a real Android phone, and whether Chrome reads the owner's college ID. The panel was not exercised with real NFC; Web NFC does not exist in the desktop test browser.
 
 # Vercel migration acceptance — 11 October 2026
 

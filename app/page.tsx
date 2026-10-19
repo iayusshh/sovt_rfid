@@ -8,6 +8,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
+import { NfcScanner } from "./nfc-scanner";
 import {
   Activity,
   ArrowDownToLine,
@@ -567,7 +568,7 @@ export default function Home() {
             </p>
             <div className="login-features">
               <span>
-                <Radio size={18} /> iPhone NFC tap
+                <Radio size={18} /> Phone NFC tap
               </span>
               <span>
                 <ShieldCheck size={18} /> Access by role
@@ -577,7 +578,7 @@ export default function Home() {
               </span>
             </div>
           </div>
-          <small>COLLEGE ATTENDANCE · IPHONE NFC</small>
+          <small>COLLEGE ATTENDANCE · ANDROID NFC</small>
         </div>
         <div className="login-content">
           <section className="login-card">
@@ -1350,6 +1351,12 @@ export default function Home() {
                         </table>
                       </div>
                       {roster.session.status === "open" && (
+                        <NfcScanner
+                          sessionId={roster.session.id}
+                          onTap={() => void refresh()}
+                        />
+                      )}
+                      {roster.session.status === "open" && (
                         <div className="simulator">
                           <div>
                             <strong>Synthetic scan simulator</strong>
@@ -1687,7 +1694,7 @@ export default function Home() {
           {tab === "readers" && (
             <>
               <div className="section-tools">
-                <span>Faculty iPhone readers</span>
+                <span>Classroom readers</span>
                 <button
                   className="button"
                   onClick={() =>
@@ -2079,30 +2086,30 @@ export default function Home() {
                 <Radio size={36} />
                 <div>
                   <h2>
-                    Your iPhone is the reader.
+                    An Android phone is the reader.
                     <br />
-                    Tap the college ID on it.
+                    Tap the college ID on its back.
                   </h2>
                   <p>
-                    An Apple Shortcut reads the ID’s NFC serial number and sends
-                    it to this workspace. Whether your specific college ID
-                    exposes a readable serial must be tested first.
+                    Chrome on Android reads the ID’s NFC serial number from the
+                    class page. Whether your specific college ID is readable
+                    must be checked first.
                   </p>
                 </div>
               </div>
               <div className="guide-grid">
                 <Panel
-                  title="01 · Probe the ID"
-                  subtitle="Scan NFC Tag, then Show Result"
+                  title="01 · Check the ID"
+                  subtitle="A free tag-reader app on the Android phone"
                 >
                   <ol className="guide-list">
                     <li>
-                      In Shortcuts, run Scan NFC Tag and show the tag’s Serial
-                      Number while holding the ID to the top of the iPhone.
+                      Turn on NFC, open a tag-reader app such as NFC TagInfo and
+                      hold the ID to the back of the phone, three times.
                     </li>
                     <li>
-                      A stable hex serial works. A changing or missing serial
-                      means the ID cannot be used directly: stick an NTAG
+                      The same UID each time works. A changing or missing UID
+                      means the ID cannot identify a student: stick an NTAG
                       sticker on it instead.
                     </li>
                   </ol>
@@ -2112,21 +2119,17 @@ export default function Home() {
                   </p>
                 </Panel>
                 <Panel
-                  title="02 · Create the phone’s reader"
-                  subtitle="One credential per faculty iPhone"
+                  title="02 · Enroll the cards"
+                  subtitle="Tap each ID once, then assign it"
                 >
                   <ol className="guide-list">
                     <li>
-                      Admin adds a reader under Readers and copies its one-time
-                      token.
+                      Open a class and start scanning, then tap each student’s
+                      ID once.
                     </li>
                     <li>
-                      Build the attendance shortcut as described in
-                      docs/iphone-reader.md and paste the token into it.
-                    </li>
-                    <li>
-                      Running the shortcut sends a heartbeat, so the reader
-                      shows Online. Rotate the token if the phone is shared.
+                      Under Activity, assign each unassigned card to its
+                      student, then enroll the student in the course.
                     </li>
                   </ol>
                 </Panel>
@@ -2136,15 +2139,12 @@ export default function Home() {
                 >
                   <ol className="guide-list">
                     <li>
-                      Tap each student’s ID once. Under Activity, assign the
-                      unassigned card to the student, then enroll them.
+                      Faculty opens a session in Chrome on the Android phone.
                     </li>
                     <li>
-                      Faculty opens a session and picks the phone’s reader.
-                    </li>
-                    <li>
-                      Run the shortcut and let students tap. A first valid tap
-                      records present; at or after 10 minutes it records late.
+                      In the roster, press Start scanning and let students tap
+                      the back of the phone. A first valid tap records present;
+                      at or after 10 minutes it records late.
                     </li>
                     <li>
                       Close the session to mark unscanned students absent.
@@ -2154,7 +2154,7 @@ export default function Home() {
                 </Panel>
                 <Panel
                   title="04 · Handle a failed scan"
-                  subtitle="Always read the result on the phone"
+                  subtitle="Read the result under the scan button"
                 >
                   <ol className="guide-list">
                     <li>
@@ -2165,10 +2165,10 @@ export default function Home() {
                       Not enrolled: verify the class enrollment before the
                       session opens.
                     </li>
-                    <li>No session: open a class linked to this reader.</li>
                     <li>
-                      A Shortcuts error means the tap is not recorded. Reconnect
-                      and retap. A correction needs a reason and is audited.
+                      “Not recorded” means the tap did not reach the server.
+                      Reconnect and tap again. A correction needs a reason and
+                      is audited.
                     </li>
                     <li>Repeated scans preserve the first attendance mark.</li>
                   </ol>
@@ -2177,9 +2177,9 @@ export default function Home() {
               <div className="info-strip">
                 <CircleHelp size={20} />
                 <p>
-                  Reading your real ID on a real iPhone has not been verified
-                  yet. The synthetic simulator verifies application behavior
-                  only.
+                  Reading your real ID on a real Android phone has not been
+                  verified yet. The synthetic simulator verifies application
+                  behavior only.
                 </p>
               </div>
             </>

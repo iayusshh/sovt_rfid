@@ -1,4 +1,9 @@
-import { createClient, type Client, type InValue, type ResultSet } from "@libsql/client";
+import {
+  createClient,
+  type Client,
+  type InValue,
+  type ResultSet,
+} from "@libsql/client";
 
 /** Only the query operations used by attendance are exposed here. */
 class Statement {
@@ -35,7 +40,10 @@ export function database() {
   if (!client) {
     const url = process.env.TURSO_DATABASE_URL;
     if (!url) throw new Error("Database is not configured");
-    if (process.env.NODE_ENV === "production" && !/^(libsql|https):\/\//.test(url)) {
+    if (
+      process.env.NODE_ENV === "production" &&
+      !/^(libsql|https):\/\//.test(url)
+    ) {
       throw new Error("Production requires a hosted libSQL database");
     }
     const authToken = process.env.TURSO_AUTH_TOKEN;
@@ -48,6 +56,9 @@ export function database() {
   return {
     prepare: (sql: string) => new Statement(connection, sql),
     batch: (statements: Statement[]) =>
-      connection.batch(statements.map(({ sql, args }) => ({ sql, args })), "write"),
+      connection.batch(
+        statements.map(({ sql, args }) => ({ sql, args })),
+        "write",
+      ),
   };
 }

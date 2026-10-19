@@ -1257,3 +1257,36 @@ td code {
     animation: none !important;
   }
 }
+
+.nfc-scanner {
+  display: grid;
+  gap: 12px;
+}
+.nfc-scanner .button {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.nfc-taps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 11px;
+}
+.nfc-taps li {
+  padding: 8px 10px;
+  border-left: 3px solid var(--muted);
+  background: #fff;
+}
+.nfc-taps li[data-ok="true"] {
+  border-left-color: #1f7a4d;
+}
+@media (max-width: 720px) {
+  .nfc-scanner .button {
+    width: 100%;
+    justify-content: center;
+  }
+}

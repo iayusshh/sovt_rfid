@@ -22,4 +22,4 @@ The requested target moves both the UI and attendance API to Vercel. Source coll
 **Can teammates edit it?** Yes, once the owner invites them to the private GitHub repository. Pull requests are the review path.
 **Are reader credentials in GitHub?** No. Configure them locally and keep secrets in ignored environment files.
 **Are previews safe to test?** They need an isolated database and secrets; production credentials are never attached to previews.
-**Does this prove physical NFC works?** No. Reading a real ID on an iPhone still needs the probe in docs/iphone-reader.md.
+**Does this prove physical NFC works?** No. Reading a real ID on an Android phone still needs the check in docs/android-reader.md.

@@ -1,14 +1,14 @@
 # SOVT RFID Attendance
 
-A college attendance application with admin, faculty, and student accounts, a persistent database, and the faculty iPhone as the card reader: an Apple Shortcut reads the college ID's NFC serial number and posts it to the attendance API. No Apple Developer account or native app is needed. Whether a given college ID exposes a readable serial must be probed first ([setup guide](docs/iphone-reader.md)). Sample students are fictional.
+A college attendance application with admin, faculty, and student accounts, a persistent database, and an Android phone as the card reader: the class roster page uses Web NFC in Chrome to read the college ID's NFC serial number and records attendance. No app is needed. Whether a given college ID is readable must be checked first ([setup guide](docs/android-reader.md)). An iPhone could not read the owner's ID through Shortcuts and was dropped. Sample students are fictional.
 
 ## What works in version 1
 
-- Admin: create/edit/deactivate students, assign card UIDs (including one click from the Unassigned cards list of recent unregistered taps), create faculty and courses, manage enrollment, provision/disable readers (one per faculty iPhone), rotate reader credentials.
+- Admin: create/edit/deactivate students, assign card UIDs (including one click from the Unassigned cards list of recent unregistered taps), create faculty and courses, manage enrollment, provision/disable readers, rotate reader credentials.
 - Faculty: open assigned course sessions, pass the reader around, monitor the live roster, close sessions, and correct marks with an audit reason.
 - Students: view their own attendance and download their own records.
 - Monitoring: live scan outcomes, reader heartbeats, duplicate protection, closed-session attendance percentages, below-75% alerts, and downloadable CSV reports.
-- iPhone reader: the Shortcut sends each serial with a fresh event ID; the server normalizes `aa:bb:..` style serials, answers with a clear outcome, and never confirms offline taps.
+- Android reader: the browser posts each serial to `/api/sessions/:id/tap` as the signed-in faculty; the server normalizes `aa:bb:..` serials, answers with a clear outcome, and never confirms offline taps. `/api/device/*` reader-token endpoints remain for dedicated readers.
 
 A session snapshots the enrolled active students when opened. A scan within ten minutes is present; at or after ten minutes it is late. Present and late both count as attended. Closing marks everyone still missing absent. Only completed session rosters count toward the percentage. A repeated tap preserves the first mark. Changed enrollment does not rewrite past rosters. Manual corrections retain actor, before/after status, and reason.
 
@@ -45,12 +45,12 @@ npm run demo:seed
 
 Open http://localhost:3000. The migration runner tracks checksums and is safe to repeat. Seed creates ten synthetic students, two faculty, two courses and one reader; it preserves existing demo records. `npm run build` and `npm start` run the production Node build. Database records persist across application restarts. Production rejects local database files and requires `TURSO_DATABASE_URL` plus `TURSO_AUTH_TOKEN` in Vercel's production environment.
 
-The setup endpoint requires the secret `SETUP_TOKEN`. Remove that environment variable after provisioning to disable further bootstrap access. Keep database and device credentials server-side or in ignored local files. Never commit `.env.local`, `.dev.vars`or an exported Shortcut (it embeds the reader token).
+The setup endpoint requires the secret `SETUP_TOKEN`. Remove that environment variable after provisioning to disable further bootstrap access. Keep database and device credentials server-side or in ignored local files. Never commit `.env.local`, `.dev.vars`or reader tokens.
 
 ## Demonstration sequence
 
 1. Sign in as admin. Review Students, Courses and enrollment. Replace a student's synthetic UID with a discovered physical card UID when hardware is available.
-2. Provision a reader for the faculty iPhone, or use the demo reader with its configured key, and build the Shortcut from [the iPhone reader guide](docs/iphone-reader.md). Run its probe against your ID first.
+2. Create a reader (the class's scanner) or use the demo reader, and check your ID with [the Android reader guide](docs/android-reader.md) first.
 3. Sign in as Faculty 1 and open a Database Systems session on that reader.
 4. Tap an enrolled card. The roster updates every three seconds. For a hardware-free demonstration, use the clearly labeled **Synthetic scan simulator**; its marks retain `simulated` as their source.
 5. Retap the same card to observe duplicate preservation; try an unregistered card to observe rejection.
@@ -59,9 +59,9 @@ The setup endpoint requires the secret `SETUP_TOKEN`. Remove that environment va
 
 ## Verification and limitations
 
-See [independent audit](docs/audit.md) for the fresh executed results. Local API lifecycle/security, restart persistence, exact late boundary and actual late HTTP behavior were verified independently. TypeScript, production build, browser session workflow were checked (the original ESP32 firmware build is no longer in this repo). Reading your actual college ID with an actual iPhone and Shortcut has **not** been verified; do the probe in [docs/iphone-reader.md](docs/iphone-reader.md). An HTTP submission is not proof of an NFC read.
+See [independent audit](docs/audit.md) for the fresh executed results. Local API lifecycle/security, restart persistence, exact late boundary and actual late HTTP behavior were verified independently. TypeScript, production build, browser session workflow were checked (the original ESP32 firmware build is no longer in this repo). Reading your actual college ID with an actual Android phone has **not** been verified; follow [docs/android-reader.md](docs/android-reader.md). An HTTP submission is not proof of an NFC read.
 
-The dedicated reader bearer in the Shortcut is the only app credential required. This repo contains no actual credentials in tracked source. Without network access the Shortcut shows an error (the tap is not recorded); retap online, checking the roster if a response was lost. Faculty can repair attendance with an audited reason.
+Dedicated hardware readers authenticate with a reader bearer token; the phone uses the faculty's session. This repo contains no actual credentials in tracked source. Without network access the phone shows "Not recorded"; retap online, checking the roster if a response was lost. Faculty can repair attendance with an audited reason.
 
 This assignment identifies students by a card UID. It does not prevent card lending or UID cloning. Use authenticated cards and stronger identity checks if extending it beyond an assignment demonstration.
 
@@ -86,7 +86,7 @@ Student profile and management portal, parent contact details, and a single acti
 - `app/page.tsx`, `app/globals.css`: role-aware responsive workspace.
 - `app/api/[...path]/route.ts`, `lib/attendance-api.ts`: authenticated API and attendance transactions.
 - `db/schema.ts`, `drizzle/`: versioned SQLite-compatible schema and migration.
-- `docs/iphone-reader.md`, `docs/research-iphone-shortcuts.md`: Shortcut setup, ID probe and research.
+- `app/nfc-scanner.tsx`, `docs/android-reader.md`, `docs/research-android-web-nfc.md`: Web NFC reader, setup and research.
 - `docs/research-attendance.md`, `.claude/context/rfid-attendance.md`: decisions and API contract.
 - `tests/independent-audit.mjs`, `docs/audit.md`: independent verification.
 
@@ -96,4 +96,4 @@ Future schema changes append migrations. Do not rewrite an applied migration. De
 
 ### Delivery status — 11 October 2026
 
-Vercel production deployment succeeded. All 32 fresh hosted API lifecycle/privacy checks, three database tests, TypeScript, lint, Next.js build, and GitHub Actions passed. Live administrator login and synthetic card attendance were observed in the browser. See docs/audit.md for scope and evidence. Physical iPhone NFC reading of the college ID remains unverified until probed on the actual phone and card.
+Vercel production deployment succeeded. All 32 fresh hosted API lifecycle/privacy checks, three database tests, TypeScript, lint, Next.js build, and GitHub Actions passed. Live administrator login and synthetic card attendance were observed in the browser. See docs/audit.md for scope and evidence. Physical NFC reading of the college ID on an Android phone remains unverified.
