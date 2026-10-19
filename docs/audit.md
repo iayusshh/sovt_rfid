@@ -7,7 +7,7 @@ Scope: ESP32 firmware and hardware guide removed; faculty iPhone Shortcut is the
 - Browser: admin Activity tab listed unassigned UIDs from taps made with a Shortcut-shaped request; assigning one to a student saved and removed it from the list.
 
 ## Not verified
-- A real iPhone running the Shortcut, and whether the real college ID exposes a stable readable serial. Hosted results are recorded below only if run.
+- A real iPhone running the Shortcut, and whether the real college ID exposes a stable readable serial. Hosted: pushed to main as 45040b4; Vercel production deployment reached Ready, the public alias serves the new UI bundle and the device API answers 401 without a credential. The full lifecycle audit was not re-run against production (its credentials are not local).
 
 # Vercel migration acceptance — 11 October 2026
 
