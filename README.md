@@ -59,7 +59,7 @@ The setup endpoint requires the secret `SETUP_TOKEN`. Remove that environment va
 
 ## Verification and limitations
 
-See [independent audit](docs/audit.md) for the fresh executed results. Local API lifecycle/security, restart persistence, exact late boundary and actual late HTTP behavior were verified independently. TypeScript, production build, browser session workflow were checked (the original ESP32 firmware build is no longer in this repo). Reading your actual college ID with an actual Android phone has **not** been verified; follow [docs/android-reader.md](docs/android-reader.md). An HTTP submission is not proof of an NFC read.
+See [independent audit](docs/audit.md) for the fresh executed results. Local API lifecycle/security, restart persistence, exact late boundary and actual late HTTP behavior were verified independently. TypeScript, production build, browser session workflow were checked (the original ESP32 firmware build is no longer in this repo). Reading the owner's college ID with one Samsung Android phone in Chrome was observed working on 19 October 2026; other phones/cards are unverified. See [docs/android-reader.md](docs/android-reader.md). An HTTP submission is not proof of an NFC read.
 
 Dedicated hardware readers authenticate with a reader bearer token; the phone uses the faculty's session. This repo contains no actual credentials in tracked source. Without network access the phone shows "Not recorded"; retap online, checking the roster if a response was lost. Faculty can repair attendance with an audited reason.
 
@@ -96,4 +96,4 @@ Future schema changes append migrations. Do not rewrite an applied migration. De
 
 ### Delivery status — 11 October 2026
 
-Vercel production deployment succeeded. All 32 fresh hosted API lifecycle/privacy checks, three database tests, TypeScript, lint, Next.js build, and GitHub Actions passed. Live administrator login and synthetic card attendance were observed in the browser. See docs/audit.md for scope and evidence. Physical NFC reading of the college ID on an Android phone remains unverified.
+Vercel production deployment succeeded. All 32 fresh hosted API lifecycle/privacy checks, three database tests, TypeScript, lint, Next.js build, and GitHub Actions passed. Live administrator login and synthetic card attendance were observed in the browser. See docs/audit.md for scope and evidence. A real Samsung Android phone in Chrome read the owner's college ID (MIFARE Classic 1K) on the live site: unregistered tap, assignment, present, and duplicate preservation were observed on 19 October 2026. Other phones, cards and a full class remain untested.

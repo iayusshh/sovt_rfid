@@ -6,8 +6,12 @@ Scope: iPhone Shortcut path dropped; class roster has a Phone NFC reader (Web NF
 - Independent HTTP audit including new assertions: students and unassigned faculty get 403 from the tap endpoint; assigned faculty tap records present; a repeat preserves the first mark; a tap after close is rejected; a colon-separated lowercase serial matches its card; unregistered taps are visible to admin. Three database tests, TypeScript, ESLint and the production build also passed.
 - Browser: admin Activity tab listed unassigned UIDs and assigning one to a student saved. In desktop Chrome the scan panel reports no NFC support; with an injected fake `NDEFReader`, a repeated serial was debounced to one tap, a registered card showed present and an unknown card showed rejected.
 
+## Verified on hardware (19 October 2026, owner's report and screenshots)
+- Samsung SM-S721B, Android 16, Chrome, against https://sovt-rfid.vercel.app. NFC TagInfo identified the college ID as MIFARE Classic 1K with a 4-byte UID, sectors blank on factory keys, tech list MifareClassic/NfcA/NdefFormatable.
+- Chrome Web NFC read the ID: the first tap gave "Card is not registered" and appeared under Unassigned cards; after admin assigned it, the next tap recorded the student present (roster 1 / 1 attended) and the following tap reported "Already recorded; original mark preserved".
+
 ## Not verified
-- The scanner UI on a real Android phone, and whether Chrome reads the owner's college ID. The panel was not exercised with real NFC; Web NFC does not exist in the desktop test browser.
+- UID stability over many taps/cards, classroom-scale use with many students, other phone models, and card cloning resistance (a MIFARE Classic UID can be copied).
 
 # Vercel migration acceptance — 11 October 2026
 
