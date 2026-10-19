@@ -298,6 +298,25 @@ expect(
   ).data.outcome === "unknown_card",
   "unknown card rejected",
 );
+// Apple Shortcuts sends the serial as "aa:bb:..." and no Origin header.
+const shortcutUid = original.cardUid.toLowerCase().match(/../g).join(":");
+expect(
+  (
+    await api("/device/scan", {
+      method: "POST",
+      token,
+      body: { uid: shortcutUid, eventId: `shortcut-${stamp}` },
+    })
+  ).data.outcome === "duplicate",
+  "colon-separated lowercase serial from Shortcuts matches the card",
+);
+const unknownEvent = (await api("/state", { cookie: admin })).data.events.find(
+  (e) => e.uid === "04ABCDEF010203",
+);
+expect(
+  !!unknownEvent,
+  "unregistered tap is visible to admin for card assignment",
+);
 const outside = astate.students.find((s) => s.id !== original.id);
 expect(
   (

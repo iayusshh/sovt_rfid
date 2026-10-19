@@ -1,6 +1,6 @@
 # Working together on SOVT Attendance
 
-The repository contains the college attendance website, its Vercel API, and ESP32 + PN532 firmware. Keep the role boundaries and attendance rules in [README.md](README.md) intact when changing a workflow.
+The repository contains the college attendance website, its Vercel API, and the Apple Shortcuts iPhone reader guide. Keep the role boundaries and attendance rules in [README.md](README.md) intact when changing a workflow.
 
 ## Join and make a change
 
@@ -38,7 +38,7 @@ npm run test:database
 npm run build
 ```
 
-Database tests exercise a disposable SQLite database. A successful API or simulator test does not prove that the reader scanned an RFID card. Firmware contributors follow [the hardware guide](docs/hardware.md), compile with the pinned PlatformIO dependencies, and record board/card checks separately.
+Database tests exercise a disposable SQLite database. A successful API or simulator test does not prove that an iPhone read an NFC card. Record real iPhone/ID probe results separately, following [the iPhone reader guide](docs/iphone-reader.md).
 
 ## Preserve attendance records
 
@@ -46,7 +46,7 @@ Append a new migration when changing the schema; never rewrite an applied migrat
 
 ## Keep credentials out of source
 
-Environment files, local databases, `.demo-credentials.md`, and completed `firmware/include/secrets.h` belong only on your machine or in the owner's deployment settings. Commit example placeholders, never passwords, database tokens, setup tokens, or reader credentials. Do not publish compiled firmware containing credentials. If a secret is accidentally committed, rotate it immediately; deleting the file in a later commit does not remove it from history.
+Environment files, local databases, `.demo-credentials.md`, and any exported Shortcut (it embeds the reader token) belong only on your machine or in the owner's deployment settings. Commit example placeholders, never passwords, database tokens, setup tokens, or reader credentials. Do not share or commit an exported Shortcut. If a secret is accidentally committed, rotate it immediately; deleting the file in a later commit does not remove it from history.
 
 ## Preview and production access
 

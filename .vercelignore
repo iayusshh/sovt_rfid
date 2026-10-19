@@ -10,5 +10,3 @@
 .codex
 outputs
 work
-firmware/include/secrets.h
-firmware/.pio

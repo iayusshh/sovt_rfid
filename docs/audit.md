@@ -1,3 +1,14 @@
+# iPhone Shortcuts reader change — 19 October 2026
+
+Scope: ESP32 firmware and hardware guide removed; faculty iPhone Shortcut is the reader; Admin → Activity gained an Unassigned cards list. Server API unchanged.
+
+## Verified (local, synthetic data, dev server on a fresh SQLite file)
+- Independent HTTP audit including two new assertions: a lowercase colon-separated serial with no Origin header (as Shortcuts sends) matches the card, and an unregistered tap is visible to admin. Three database tests, TypeScript, ESLint and production build passed.
+- Browser: admin Activity tab listed unassigned UIDs from taps made with a Shortcut-shaped request; assigning one to a student saved and removed it from the list.
+
+## Not verified
+- A real iPhone running the Shortcut, and whether the real college ID exposes a stable readable serial. Hosted results are recorded below only if run.
+
 # Vercel migration acceptance — 11 October 2026
 
 Live application: https://sovt-rfid.vercel.app. The UI and Node attendance API both execute on Vercel. A separate hosted Turso Starter database in Mumbai stores records. There is no API proxy to the old Sites deployment.

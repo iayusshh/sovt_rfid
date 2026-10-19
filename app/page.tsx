@@ -567,7 +567,7 @@ export default function Home() {
             </p>
             <div className="login-features">
               <span>
-                <Radio size={18} /> Wi-Fi RFID readers
+                <Radio size={18} /> iPhone NFC tap
               </span>
               <span>
                 <ShieldCheck size={18} /> Access by role
@@ -577,7 +577,7 @@ export default function Home() {
               </span>
             </div>
           </div>
-          <small>COLLEGE ATTENDANCE · ESP32 + PN532</small>
+          <small>COLLEGE ATTENDANCE · IPHONE NFC</small>
         </div>
         <div className="login-content">
           <section className="login-card">
@@ -1687,7 +1687,7 @@ export default function Home() {
           {tab === "readers" && (
             <>
               <div className="section-tools">
-                <span>Portable ESP32 + PN532 readers</span>
+                <span>Faculty iPhone readers</span>
                 <button
                   className="button"
                   onClick={() =>
@@ -1912,6 +1912,91 @@ export default function Home() {
           )}
           {tab === "activity" && (
             <>
+              {admin &&
+                (() => {
+                  const known = new Set(state.students.map((x) => x.cardUid)),
+                    seen = new Map<string, string>();
+                  for (const e of state.events)
+                    if (!known.has(e.uid) && !seen.has(e.uid))
+                      seen.set(e.uid, e.createdAt);
+                  if (seen.size === 0) return null;
+                  return (
+                    <Panel
+                      title="Unassigned cards"
+                      subtitle="Recent taps from cards no student owns. Assign one to enroll the ID."
+                    >
+                      <div className="table-wrap">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>Card</th>
+                              <th>Last tapped</th>
+                              <th>Assign to</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[...seen].map(([uid, at]) => (
+                              <tr key={uid}>
+                                <td>
+                                  <code>{uid}</code>
+                                </td>
+                                <td>{date(at)}</td>
+                                <td>
+                                  <form
+                                    style={{
+                                      display: "flex",
+                                      gap: 8,
+                                      minWidth: 260,
+                                    }}
+                                    onSubmit={async (e) => {
+                                      e.preventDefault();
+                                      const id = new FormData(
+                                        e.currentTarget,
+                                      ).get("student");
+                                      await mutate(`/students/${id}`, "PATCH", {
+                                        cardUid: uid,
+                                      });
+                                    }}
+                                  >
+                                    <label
+                                      className="sr-only"
+                                      htmlFor={`assign-${uid}`}
+                                    >
+                                      Student for card {uid}
+                                    </label>
+                                    <select
+                                      id={`assign-${uid}`}
+                                      style={{ minWidth: 0, flex: 1 }}
+                                      name="student"
+                                      required
+                                      defaultValue=""
+                                    >
+                                      <option value="" disabled>
+                                        Choose student
+                                      </option>
+                                      {state.students.map((x) => (
+                                        <option key={x.id} value={x.id}>
+                                          {x.name} · {x.roll}
+                                          {x.cardUid ? " (replaces card)" : ""}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <button
+                                      className="button secondary"
+                                      disabled={busy}
+                                    >
+                                      Assign
+                                    </button>
+                                  </form>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </Panel>
+                  );
+                })()}
               <Panel
                 title="Recent reader events"
                 subtitle="Accepted scans, duplicates and rejected cards are visible here."
@@ -1994,71 +2079,56 @@ export default function Home() {
                 <Radio size={36} />
                 <div>
                   <h2>
-                    Your phone is the dashboard.
+                    Your iPhone is the reader.
                     <br />
-                    The ESP32 reads the card.
+                    Tap the college ID on it.
                   </h2>
                   <p>
-                    A portable PN532 reads compatible 13.56 MHz Type A cards and
-                    sends the UID over Wi-Fi. Existing college cards must be
-                    tested for compatibility.
+                    An Apple Shortcut reads the ID’s NFC serial number and sends
+                    it to this workspace. Whether your specific college ID
+                    exposes a readable serial must be tested first.
                   </p>
                 </div>
               </div>
               <div className="guide-grid">
                 <Panel
-                  title="01 · Assemble the reader"
-                  subtitle="ESP32 + PN532 in SPI mode"
+                  title="01 · Probe the ID"
+                  subtitle="Scan NFC Tag, then Show Result"
                 >
                   <ol className="guide-list">
                     <li>
-                      Use an ESP32 development board, PN532 module and
-                      compatible demonstration cards.
+                      In Shortcuts, run Scan NFC Tag and show the tag’s Serial
+                      Number while holding the ID to the top of the iPhone.
                     </li>
                     <li>
-                      Set PN532 mode switches to SPI. Connect SCK to GPIO 18,
-                      MISO to GPIO 19, MOSI to GPIO 23, CS to GPIO 5 and common
-                      GND. Use a 3.3 V compatible module; check its voltage
-                      documentation.
-                    </li>
-                    <li>
-                      Use the project’s firmware wiring guide before connecting
-                      LEDs or powering the board.
+                      A stable hex serial works. A changing or missing serial
+                      means the ID cannot be used directly: stick an NTAG
+                      sticker on it instead.
                     </li>
                   </ol>
                   <p className="panel-note">
-                    A UID is an assignment identifier, not cryptographic proof
-                    of student identity.
+                    A serial is an assignment identifier, not cryptographic
+                    proof of student identity.
                   </p>
                 </Panel>
                 <Panel
-                  title="02 · Configure and connect"
-                  subtitle="Flash the supplied firmware"
+                  title="02 · Create the phone’s reader"
+                  subtitle="One credential per faculty iPhone"
                 >
                   <ol className="guide-list">
                     <li>
-                      Admin provisions a reader under Readers and securely
-                      copies its one-time reader token and ID.
+                      Admin adds a reader under Readers and copies its one-time
+                      token.
                     </li>
                     <li>
-                      Configure Wi-Fi credentials, this workspace’s HTTPS URL
-                      and the reader token in the firmware’s local
-                      configuration. Add the correct trusted root CA certificate
-                      for verified HTTPS and enable clock synchronization.
+                      Build the attendance shortcut as described in
+                      docs/iphone-reader.md and paste the token into it.
                     </li>
                     <li>
-                      For this Vercel deployment, leave SITES_ACCESS_TOKEN
-                      empty. The dedicated reader token authenticates scans.
-                    </li>
-                    <li>
-                      Flash the ESP32 and check that the reader becomes Online.
-                      Heartbeats are sent every 20 seconds.
+                      Running the shortcut sends a heartbeat, so the reader
+                      shows Online. Rotate the token if the phone is shared.
                     </li>
                   </ol>
-                  <p className="panel-note">
-                    The repository’s docs/hardware.md includes the exact
-                    dependencies, wiring and flashing steps.
-                  </p>
                 </Panel>
                 <Panel
                   title="03 · Run your first class"
@@ -2066,14 +2136,15 @@ export default function Home() {
                 >
                   <ol className="guide-list">
                     <li>
-                      Use firmware discovery mode and the serial monitor to read
-                      each card UID. Register it to the student and enroll them
-                      in the course.
+                      Tap each student’s ID once. Under Activity, assign the
+                      unassigned card to the student, then enroll them.
                     </li>
-                    <li>Faculty opens a session and assigns the reader.</li>
                     <li>
-                      Pass the reader around. A first valid tap records present;
-                      at or after 10 minutes it records late.
+                      Faculty opens a session and picks the phone’s reader.
+                    </li>
+                    <li>
+                      Run the shortcut and let students tap. A first valid tap
+                      records present; at or after 10 minutes it records late.
                     </li>
                     <li>
                       Close the session to mark unscanned students absent.
@@ -2083,11 +2154,12 @@ export default function Home() {
                 </Panel>
                 <Panel
                   title="04 · Handle a failed scan"
-                  subtitle="Always check the device response"
+                  subtitle="Always read the result on the phone"
                 >
                   <ol className="guide-list">
                     <li>
-                      Unknown card: check the UID registered to the student.
+                      Card not registered: assign it from Activity → Unassigned
+                      cards.
                     </li>
                     <li>
                       Not enrolled: verify the class enrollment before the
@@ -2095,8 +2167,8 @@ export default function Home() {
                     </li>
                     <li>No session: open a class linked to this reader.</li>
                     <li>
-                      Network failure: the tap is not confirmed. Reconnect and
-                      retap. A correction needs a reason and is audited.
+                      A Shortcuts error means the tap is not recorded. Reconnect
+                      and retap. A correction needs a reason and is audited.
                     </li>
                     <li>Repeated scans preserve the first attendance mark.</li>
                   </ol>
@@ -2105,9 +2177,9 @@ export default function Home() {
               <div className="info-strip">
                 <CircleHelp size={20} />
                 <p>
-                  Physical radio reads, wiring and device feedback still require
-                  testing with your actual board and cards. The synthetic
-                  simulator verifies application behavior only.
+                  Reading your real ID on a real iPhone has not been verified
+                  yet. The synthetic simulator verifies application behavior
+                  only.
                 </p>
               </div>
             </>
